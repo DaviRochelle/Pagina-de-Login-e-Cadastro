@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Acessórios</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+            background-color: #003366; /* Azul escuro */
+            font-family: Arial, sans-serif;
+            color: white;
+        }
+        .container {
+            background-color: #004080; /* Azul mais claro */
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 80%;
+            max-width: 800px;
+            text-align: center;
+        }
+        h2 {
+            margin-bottom: 20px;
+        }
+        input, select {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #0056b3;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #004494;
+        }
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ccc;
+            text-align: left;
+        }
+        th {
+            background-color: #0056b3;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #e0e0e0;
+            color: #333;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        .remove-button, .edit-button {
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+        }
+        .remove-button {
+            background-color: #d9534f;
+        }
+        .remove-button:hover {
+            background-color: #c9302c;
+        }
+        .edit-button {
+            background-color: #5bc0de;
+        }
+        .edit-button:hover {
+            background-color: #31b0d5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Gestão de Acessórios</h2>
+        <input id="name" type="text" placeholder="Nome" required>
+        <select id="type">
+            <option value="">Tipo: Selecione...</option>
+            <option value="controle">Controle de Condicionado</option>
+            <option value="notebook">Notebook</option>
+            <option value="data">Controle DataShow</option>
+        </select>
+        <select id="status">
+            <option value="">Status: Selecione...</option>
+            <option value="ativo">Ativo</option>
+            <option value="inativo">Inativo</option>
+            <option value="manutencao">Manutenção</option>
+        </select>
+        <button onclick="addAccessory()">Cadastrar</button>
+        
+        <table id="accessoriesTable">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Tipo</th>
+                    <th>Status</th>
+                    <th>Data Cadastro</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Itens cadastrados serão adicionados aqui -->
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        const accessories = [];
+
+        async function addAccessory() {
+            const name = document.getElementById('name').value;
+            const type = document.getElementById('type').value;
+            const status = document.getElementById('status').value;
+
+            if (name && type && status) {
+                const accessory = { name, type, status };
+
+                // Enviar dados para o servidor
+                const response = await fetch('http://localhost:5000/accessories', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(accessory)
+                });
+
+                const newAccessory = await response.json();
+                accessories.push(newAccessory);
+                renderTable();
+                clearFields();
+            } else {
+                alert('Por favor, preencha todos os campos.');
+            }
+        }
+
+        function renderTable() {
+            const tableBody = document.querySelector('#accessoriesTable tbody');
+            tableBody.innerHTML = '';
+
+            accessories.forEach((accessory, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${accessory.name}</td>
+                    <td>${accessory.type}</td>
+                    <td>${accessory.status}</td>
+                    <td>${accessory.date}</td>
+                    <td class="action-buttons">
+                        <button class="edit-button" onclick="editAccessory(${index})">Editar</button>
+                        <button class="remove-button" onclick="removeAccessory(${index})">Remover</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        function removeAccessory(index) {
+            accessories.splice(index, 1);
+            renderTable();
+        }
+
+        function editAccessory(index) {
+            const accessory = accessories[index];
+            document.getElementById('name').value = accessory.name;
+            document.getElementById('type').value = accessory.type;
+            document.getElementById('status').value = accessory.status;
+
+            // Remove o item da lista para edição
+            removeAccessory(index);
+        }
+
+        function clearFields() {
+            document.getElementById('name').value = '';
+            document.getElementById('type').value = '';
+            document.getElementById('status').value = '';
+        }
+    </script>
+</body>
+</html>
